@@ -166,26 +166,26 @@ func (m *MultiMap[K, V]) Clone() *MultiMap[K, V] {
 	return clone
 }
 
-// Equal returns true if the other MultiMap contains the same keys and values (by equality).
-func (m *MultiMap[K, V]) Equal(other *MultiMap[K, V]) bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	other.mu.RLock()
-	defer other.mu.RUnlock()
+// Equal returns true if the two MultiMaps contain the same keys and values (by equality).
+func Equal[K comparable, V any](a, b *MultiMap[K, V]) bool {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	b.mu.RLock()
+	defer b.mu.RUnlock()
 
-	if len(m.data) != len(other.data) {
+	if len(a.data) != len(b.data) {
 		return false
 	}
 
-	for k, vals1 := range m.data {
-		vals2, ok := other.data[k]
+	for k, vals1 := range a.data {
+		vals2, ok := b.data[k]
 		if !ok || len(vals1) != len(vals2) {
 			return false
 		}
 		for _, v1 := range vals1 {
 			found := false
 			for _, v2 := range vals2 {
-				if m.equalsFunc(v1, v2) {
+				if a.equalsFunc(v1, v2) {
 					found = true
 					break
 				}
@@ -196,6 +196,11 @@ func (m *MultiMap[K, V]) Equal(other *MultiMap[K, V]) bool {
 		}
 	}
 	return true
+}
+
+// Equal returns true if the other MultiMap contains the same keys and values (by equality).
+func (m *MultiMap[K, V]) Equal(other *MultiMap[K, V]) bool {
+	return Equal(m, other)
 }
 
 // MarshalJSON implements json.Marshaler for MultiMap.
